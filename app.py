@@ -15,16 +15,16 @@ handler = WebhookHandler(config['channelSecret'])
 def hello():
     return 'hello world'
 
-@app.route('/callback', methods=['POST'])
-def callback():
-    signature = request.headers['X-Line-Signature']
-    body = request.get_data(as_text=True)
-    try:
-        handler.handle(body, signature)
-    except Exception as ex:
-        print('發生未預期錯誤：', ex)
-        abort(400) # 回傳 Http 400 error (錯誤的請求)
-    return 'OK'
+# @app.route('/callback', methods=['POST'])
+# def callback():
+#     signature = request.headers['X-Line-Signature']
+#     body = request.get_data(as_text=True)
+#     try:
+#         handler.handle(body, signature)
+#     except Exception as ex:
+#         print('發生未預期錯誤：', ex)
+#         abort(400) # 回傳 Http 400 error (錯誤的請求)
+#     return 'OK'
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
