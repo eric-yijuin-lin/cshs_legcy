@@ -1,5 +1,5 @@
 import json
-from flask import Flask, request, abort
+from flask import Flask, request, abort, render_template
 from linebot import LineBotApi, WebhookHandler
 from linebot.models import MessageEvent, TextMessage, TextSendMessage, StickerMessage
 
@@ -14,6 +14,10 @@ handler = WebhookHandler(config['channelSecret'])
 @app.route('/hello')
 def hello():
     return 'hello world'
+
+@app.route("/seat/<int:seat_id>")
+def register_seat(seat_id: int):
+    return render_template("seat_form.html", seat_id=seat_id)
 
 # @app.route('/callback', methods=['POST'])
 # def callback():
