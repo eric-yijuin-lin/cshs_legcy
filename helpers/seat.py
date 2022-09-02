@@ -1,6 +1,6 @@
-from datetime import datetime
-from class_helper import ClassHelper
 import hashlib
+from datetime import datetime
+from schoolclass import ClassHelper
 
 class SeatHelper:
     def __init__(self) -> None:
