@@ -1,7 +1,18 @@
 <h1>座位登記表</h1>
 <hr />
 
-<input type="hidden" value="{{seat_hash}}" />
-<input type="text" placeholder="班級" name="class" />
-<input type="text" placeholder="座號" name="number" />
-<input type="text" placeholder="姓名" name="name" />
+<form method="post" action="/seat">
+    <input type="hidden" value="{{seat_hash}}" name="seat_hash" readonly />
+    <select name="class_unit" required>
+        <option value="" disabled selected>選擇班級</option>
+        <option value="美二">美二</option>
+        <option value="高二1">高二1</option>
+        <option value="高二2">高二2</option>
+        <option value="高二3">高二3</option>
+        <option value="高二4">高二4</option>
+        <option value="高二5">高二5</option>
+    </select>
+    <input type="number" placeholder="座號" name="no" required />
+    <input type="text" placeholder="姓名" name="name" required />
+    <input type="submit" value="簽到" />
+</form>
