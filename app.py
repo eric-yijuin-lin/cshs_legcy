@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 from flask import Flask, request, render_template
 from linebot import LineBotApi, WebhookHandler
@@ -5,12 +6,13 @@ from modules.student import StudentInfo
 from modules.seat import SeatHelper, SeatInfo
 from modules.schoolclass import ClassHelper, ClassInfo
 
-with open('api_credential.json', 'r', encoding='utf-8') as fs:
+with open('appConfig.json', 'r', encoding='utf-8') as fs:
     config = json.load(fs) # channelSecret & accessToken
 
 app = Flask(__name__)
-line_bot_api = LineBotApi(config['accessToken'])
-handler = WebhookHandler(config['channelSecret'])
+environment = config['environment']
+line_bot_api = LineBotApi(config['lineBot']['accessToken'])
+handler = WebhookHandler(config['lineBot']['channelSecret'])
 seat_helper = SeatHelper()
 class_helper = ClassHelper()
 
@@ -19,7 +21,7 @@ class_helper = ClassHelper()
 def hello():
     return 'hello world'
 
-@app.route("/seat/<int:seat_hash>")
+@app.route("/seat/<string:seat_hash>") # FUCK!! the data must be "string" here
 def get_seat_form(seat_hash: str):
     return render_template("seat_form.html", seat_hash=seat_hash)
 
@@ -27,12 +29,19 @@ def get_seat_form(seat_hash: str):
 def register_seat():
     student_info = StudentInfo(request.form)
     seat_info = seat_helper.get_seat_info(request.form)
-    class_info = class_helper.get_class_by_datetime()
+    if environment == 'Production':
+        class_info = class_helper.get_class_by_datetime()
+    else:
+        debug_date = datetime(2022, 9, 5, 8)
+        class_info = class_helper.get_class_by_datetime(debug_date)
+
     try:
         validate_seat(seat_info, class_info)
         validate_class(student_info, class_info)
     except ValueError as ex:
         return str(ex), 400
+
+    return "OK"
 
 
 def validate_seat(seat_info: SeatInfo, class_info: ClassInfo):
