@@ -20,8 +20,8 @@ def hello():
     return 'hello world'
 
 @app.route("/seat/<int:seat_hash>")
-def get_seat_form(seat_id: str):
-    return render_template("seat_form.html", seat_id=seat_id)
+def get_seat_form(seat_hash: str):
+    return render_template("seat_form.html", seat_hash=seat_hash)
 
 @app.route("/seat", methods=["POST"])
 def register_seat():

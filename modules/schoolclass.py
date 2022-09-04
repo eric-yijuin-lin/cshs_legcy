@@ -1,5 +1,5 @@
 from datetime import datetime
-import seat
+from modules.seat import SeatHelper
 
 class ClassInfo:
     def __init__(self) -> None:
@@ -39,7 +39,7 @@ class ClassHelper:
     }
 
     def __init__(self) -> None:
-        self.seat_helper = seat.SeatHelper()
+        self.seat_helper = SeatHelper()
 
     def get_class_by_datetime(self, dt: datetime = None):
         if dt is None:
