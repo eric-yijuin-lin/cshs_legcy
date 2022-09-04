@@ -1,6 +1,6 @@
-from calendar import weekday
 from datetime import datetime
 import seat
+
 class ClassInfo:
     def __init__(self) -> None:
         self.unit = ""

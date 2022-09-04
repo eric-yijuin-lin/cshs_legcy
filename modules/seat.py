@@ -1,6 +1,4 @@
 import hashlib
-from datetime import datetime
-from schoolclass import ClassHelper
 
 class SeatInfo:
     def __init__(self) -> None:
@@ -149,7 +147,7 @@ class SeatHelper:
         seat_info.classroom = seat_item[0]
         seat_info.seat_no = seat_item[1]
         return seat_info
-    
+
     def get_seat_hash(self, classroom: str, seat_no: int) -> str:
         SeatHelper.hasher.update(
             f"{classroom}-{str(seat_no).zfill(2)}"

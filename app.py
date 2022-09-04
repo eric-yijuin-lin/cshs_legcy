@@ -1,15 +1,9 @@
-from calendar import weekday
-from datetime import datetime
 import json
+from flask import Flask, request, render_template
+from linebot import LineBotApi, WebhookHandler
+from modules.student import StudentInfo
 from modules.seat import SeatHelper, SeatInfo
 from modules.schoolclass import ClassHelper, ClassInfo
-from crypt import methods
-from flask import Flask, request, abort, render_template
-from linebot import LineBotApi, WebhookHandler
-from linebot.models import MessageEvent, TextMessage, TextSendMessage, StickerMessage
-
-from modules.student import StudentInfo
-
 
 with open('api_credential.json', 'r', encoding='utf-8') as fs:
     config = json.load(fs) # channelSecret & accessToken
@@ -70,6 +64,6 @@ def validate_class(student_info: StudentInfo, class_info: ClassInfo):
 #     line_bot_api.reply_message(
 #         event.reply_token,
 #         TextSendMessage(text='Sticker~~'))
-        
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=9000)
