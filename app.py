@@ -27,15 +27,15 @@ def get_seat_form(seat_hash: str):
 
 @app.route("/seat", methods=["POST"])
 def register_seat():
-    student_info = StudentInfo(request.form)
-    seat_info = seat_helper.get_seat_info(request.form)
-    if environment == 'Production':
-        class_info = class_helper.get_class_by_datetime()
-    else:
-        debug_date = datetime(2022, 9, 5, 8)
-        class_info = class_helper.get_class_by_datetime(debug_date)
-
     try:
+        student_info = StudentInfo(request.form)
+        seat_info = seat_helper.get_seat_info(request.form)
+        if environment == 'Production':
+            class_info = class_helper.get_class_by_datetime()
+        else:
+            debug_date = datetime(2022, 9, 5, 8)
+            class_info = class_helper.get_class_by_datetime(debug_date)
+
         validate_seat(seat_info, class_info)
         validate_class(student_info, class_info)
     except ValueError as ex:

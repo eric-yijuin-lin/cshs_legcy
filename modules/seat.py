@@ -140,8 +140,11 @@ class SeatHelper:
         pass
 
     def get_seat_info(self, form_data: dict) -> SeatInfo:
-        seat_hash = form_data["seat_hash"]
+        seat_hash = form_data.get("seat_hash")
         seat_item = SeatHelper.seat_hash_dict.get(seat_hash)
+        if seat_hash is None or seat_item is None:
+            raise ValueError("無效的簽到表單，請檢查 seat hash")
+
         seat_info = SeatInfo()
         seat_info.hash = seat_hash
         seat_info.classroom = seat_item[0]

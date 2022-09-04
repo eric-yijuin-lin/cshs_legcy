@@ -44,13 +44,17 @@ class ClassHelper:
     def get_class_by_datetime(self, dt: datetime = None):
         if dt is None:
             dt = datetime.now()
-        weekday = dt.weekday()
+        weekday = dt.weekday() + 1 # 轉換成台灣人習慣的 1~7
         hour = dt.hour
         return self.get_class_info(weekday, hour)
 
     def get_class_info(self, weekday, hour) -> ClassInfo:
         time_segment = ClassHelper.class_timetable.get(hour)
-        class_item = ClassHelper.class_info_dict.get(weekday, hour)
+        class_item = ClassHelper.class_info_dict.get((weekday, hour))
+        if time_segment is None:
+            raise ValueError("無法找到節次")
+        if class_item is None:
+            raise ValueError("無法找到課堂資訊")
 
         class_info = ClassInfo()
         class_info.segment = time_segment
