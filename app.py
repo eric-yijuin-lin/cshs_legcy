@@ -21,8 +21,9 @@ class_helper = ClassHelper()
 def hello():
     return 'hello world'
 
-@app.route("/seat/<string:seat_hash>") # FUCK!! the data must be "string" here
-def get_seat_form(seat_hash: str):
+@app.route("/seat") # FUCK!! the data must be "string" here
+def get_seat_form():
+    seat_hash = request.args["seat_hash"]
     return render_template("seat_form.html", seat_hash=seat_hash)
 
 @app.route("/seat", methods=["POST"])
