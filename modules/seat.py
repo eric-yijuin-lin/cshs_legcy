@@ -141,12 +141,14 @@ class SeatHelper:
     def __init__(self) -> None:
         pass
 
-    def get_seat_info(self, seat_hash: str) -> SeatInfo:
+    def get_seat_info(self, form_data: dict) -> SeatInfo:
+        seat_hash = form_data["seat_hash"]
         seat_item = SeatHelper.seat_hash_dict.get(seat_hash)
         seat_info = SeatInfo()
         seat_info.hash = seat_hash
         seat_info.classroom = seat_item[0]
         seat_info.seat_no = seat_item[1]
+        return seat_info
     
     def get_seat_hash(self, classroom: str, seat_no: int) -> str:
         SeatHelper.hasher.update(
