@@ -53,11 +53,7 @@ def register_seat():
 
     row = RegisterationRow(student_info, class_info, seat_info)
     if is_duplicate_registeration(row):
-<<<<<<< HEAD
-        return "重複簽到，請檢查「班級」、「座號」與座位卡", 400
-=======
         return "重複簽到，請檢查「班級」、「座號」與座位卡", 400 
->>>>>>> 8d7bb190c233267b00c056e0a81e93fb22d94929
     try:
         doRegister(row)
         update_shadow(row)
