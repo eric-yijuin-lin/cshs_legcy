@@ -1,7 +1,7 @@
 import datetime
-from student import StudentInfo
-from schoolclass import ClassInfo
-from seat import SeatInfo
+from modules.student import StudentInfo
+from modules.schoolclass import ClassInfo
+from modules.seat import SeatInfo
 
 class RegisterationRow:
     def __init__(self, student_info: StudentInfo, class_info: ClassInfo, seat_info: SeatInfo) -> None:
@@ -21,16 +21,6 @@ class RegisterationRow:
             self.time_segment,
             self.datetime
         ]
-import datetime
-<<<<<<< HEAD
-from modules.student import StudentInfo
-from modules.schoolclass import ClassInfo
-from modules.seat import SeatInfo
-=======
-from student import StudentInfo
-from schoolclass import ClassInfo
-from seat import SeatInfo
->>>>>>> 8d7bb190c233267b00c056e0a81e93fb22d94929
 
 class RegisterationRow:
     def __init__(self, student_info: StudentInfo, class_info: ClassInfo, seat_info: SeatInfo) -> None:
