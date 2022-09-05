@@ -2,19 +2,28 @@ from datetime import datetime
 import json
 from flask import Flask, request, render_template
 from linebot import LineBotApi, WebhookHandler
+from modules.googlesheet import GoogleSheetHelper
 from modules.student import StudentInfo
 from modules.seat import SeatHelper, SeatInfo
 from modules.schoolclass import ClassHelper, ClassInfo
+from modules.registeration import RegisterationRow
 
 with open('appConfig.json', 'r', encoding='utf-8') as fs:
     config = json.load(fs) # channelSecret & accessToken
 
 app = Flask(__name__)
 environment = config['environment']
+
+sheet_helper = GoogleSheetHelper(
+    config['googleSheet']["credential"],
+    config['googleSheet']["url"]
+)
 line_bot_api = LineBotApi(config['lineBot']['accessToken'])
 handler = WebhookHandler(config['lineBot']['channelSecret'])
 seat_helper = SeatHelper()
 class_helper = ClassHelper()
+
+shadow_df = sheet_helper.read_all_as_df()
 
 @app.route('/')
 @app.route('/hello')
@@ -42,38 +51,41 @@ def register_seat():
     except ValueError as ex:
         return str(ex), 400
 
+    row = RegisterationRow(student_info, class_info, seat_info)
+    if is_duplicate_registeration(row):
+        return "重複簽到，請檢查「班級」、「座號」與座位卡", 400 
+    try:
+        doRegister(row)
+        update_shadow(row)
+    except Exception as ex:
+        return str(ex), 500
     return "OK"
-
 
 def validate_seat(seat_info: SeatInfo, class_info: ClassInfo):
     if seat_info.classroom != class_info.room:
         raise ValueError("教室與時間匹配錯誤，請檢查輸入")
+
 def validate_class(student_info: StudentInfo, class_info: ClassInfo):
     if student_info.class_unit != class_info.unit:
         raise ValueError("班級與教室匹配錯誤，請檢查輸入")
-# @app.route('/callback', methods=['POST'])
-# def callback():
-#     signature = request.headers['X-Line-Signature']
-#     body = request.get_data(as_text=True)
-#     try:
-#         handler.handle(body, signature)
-#     except Exception as ex:
-#         print('發生未預期錯誤：', ex)
-#         abort(400) # 回傳 Http 400 error (錯誤的請求)
-#     return 'OK'
 
-# @handler.add(MessageEvent, message=TextMessage)
-# def handle_message(event):
-#     line_bot_api.reply_message(
-#         event.reply_token,
-#         TextSendMessage(text=event.message.text))
+def is_duplicate_registeration(row: RegisterationRow) -> bool:
+    condition = (
+        (shadow_df["班級"] == row.class_unit)
+        & (shadow_df["座號"] == row.student_no)
+    )
+    if shadow_df[condition].any():
+        return True
+    condition = ((shadow_df["座位編號"] == row.room_seat_code))
+    if shadow_df[condition].any():
+        return True
+    return False
 
-# @handler.add(MessageEvent, message=StickerMessage)
-# def handle_message2(event):
-#     print(event.reply_token)
-#     line_bot_api.reply_message(
-#         event.reply_token,
-#         TextSendMessage(text='Sticker~~'))
+def doRegister(registeration_row: RegisterationRow) -> None:
+    sheet_helper.insert_row(registeration_row.to_list())
+
+def update_shadow(registeration_row: RegisterationRow) -> None:
+    shadow_df.append(registeration_row.to_list())
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=9000)

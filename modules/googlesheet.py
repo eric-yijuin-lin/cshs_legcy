@@ -5,7 +5,6 @@ class GoogleSheetHelper:
     def __init__(self, credential: str, sheet_url) -> None:
         self.gc = pygsheets.authorize(service_account_file=credential)
         self.sheet = self.gc.open_by_url(sheet_url).sheet1
-        self.shadow_df = self.read_all_as_df()
         # print(self.workbook.worksheets)
 
     def read_all_as_df(self) -> DataFrame:
@@ -36,6 +35,3 @@ class GoogleSheetHelper:
         if end_col is None or end_row is None:
             return start_cell
         return f"{start_cell}:{end_col}{end_row}"
-
-    def update_shadow(self, row: list) -> None:
-        self.shadow_df.append(row)
