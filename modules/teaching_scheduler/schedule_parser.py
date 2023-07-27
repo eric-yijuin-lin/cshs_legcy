@@ -41,8 +41,6 @@ class Schedule:
                 key = (day, period)
                 if key in self.schedule:
                     result["schedule"][day].append(self.schedule[key])
-                else:
-                    result["schedule"][day].append(None)
         return result
 
 
@@ -235,9 +233,9 @@ class ScheduleParser:
                 raise ValueError("未定義的 type prefix")
         output_file = source_folder + "/_unified.json"
         with open(output_file, "w", encoding="utf8") as fp:
-            json.dump(unified_json, fp)
-        
+            json.dump(unified_json, fp, indent=4)
+
 parser = ScheduleParser(DEFAUT_SCHEDULE_FOLDER)
-# parser.parse()
-# parser.save_all_schedule_as_json()
+parser.parse()
+parser.save_all_schedule_as_json()
 parser.unify_schedule_json()
