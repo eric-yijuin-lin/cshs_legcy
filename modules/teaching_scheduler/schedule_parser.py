@@ -4,6 +4,7 @@ from enum import Enum
 from bs4 import BeautifulSoup
 
 DEFAUT_SCHEDULE_FOLDER = "C:/Users/funny/Desktop/112暑輔網頁"
+SUPPORTED_PREFIX = ['t', 'c', 'r']
 
 class ScheduleType(Enum):
     Undefineded = 0
@@ -58,7 +59,7 @@ class ScheduleParser:
         file_names = os.listdir(folder_path)
         for file_name in file_names:
             type_code = file_name[0]
-            if type_code in ['t', 'c', 'r']:
+            if type_code in SUPPORTED_PREFIX:
                 schedule = self.get_schedule_from_html(type_code, file_name)
             else:
                 continue
@@ -187,18 +188,18 @@ class ScheduleParser:
     def get_period(self, td_contents: list):
         return td_contents[0] + td_contents[2] + td_contents[4]
 
-    def save_json_single(self, schedule: Schedule, folder) -> None:
+    def save_schedule_as_json(self, schedule: Schedule, folder) -> None:
         schedule_json = schedule.get_as_json()
         file_name = self.get_saving_file_name(schedule, folder)
         with open(file_name, "w", encoding="utf8") as fp:
             json.dump(schedule_json, fp, indent=4)
 
-    def save_json_all(self, source_folder = DEFAUT_SCHEDULE_FOLDER) -> None:
+    def save_all_schedule_as_json(self, source_folder = DEFAUT_SCHEDULE_FOLDER) -> None:
         target_folder = source_folder + "/json"
         if not os.path.isdir(target_folder):
             os.mkdir(target_folder)
         for schedule in self.schedules:
-            self.save_json_single(schedule, target_folder)
+            self.save_schedule_as_json(schedule, target_folder)
 
     def get_saving_file_name(self, schedule: Schedule, folder: str) -> str:
         file_name = f"{schedule.code}-{schedule.name}.json"
@@ -211,6 +212,32 @@ class ScheduleParser:
         else:
             raise ValueError("未定義的 schedule type")
         return f"{folder}/{file_name}"
+    
+    def unify_schedule_json(self, source_folder = DEFAUT_SCHEDULE_FOLDER + "/json") -> None:
+        unified_json = {
+            "teacher": [],
+            "class_unit": [],
+            "class_room": [],
+        }
+        file_list = os.listdir(source_folder)
+        for file_name in file_list:
+            if file_name[0] not in SUPPORTED_PREFIX or file_name[0] == '_':
+                continue
+            with open(f"{source_folder}/{file_name}", "r", encoding="utf8") as fp:
+                schedule = json.load(fp)
+            if file_name[0] == 't':
+                unified_json["teacher"].append(schedule)
+            elif file_name[0] == 'c':
+                unified_json["class_unit"].append(schedule)
+            elif file_name[0] == 'r':
+                unified_json["class_room"].append(schedule)
+            else:
+                raise ValueError("未定義的 type prefix")
+        output_file = source_folder + "/_unified.json"
+        with open(output_file, "w", encoding="utf8") as fp:
+            json.dump(unified_json, fp)
+        
 parser = ScheduleParser(DEFAUT_SCHEDULE_FOLDER)
-parser.parse()
-parser.save_json_all()
+# parser.parse()
+# parser.save_all_schedule_as_json()
+parser.unify_schedule_json()
