@@ -1,5 +1,5 @@
 import json
-from os import listdir
+import os
 from enum import Enum
 from bs4 import BeautifulSoup
 
@@ -35,13 +35,13 @@ class Schedule:
             "schedule": {}
         }
         for day in ["一", "二", "三", "四", "五"]:
-            result[day] = []
+            result["schedule"][day] = []
             for period in ["第一節", "第二節", "第三節", "第四節", "第五節", "第六節", "第七節", "第八節"]:
                 key = (day, period)
                 if key in self.schedule:
-                    result[day].append(self.schedule[key])
+                    result["schedule"][day].append(self.schedule[key])
                 else:
-                    result[day].append(None)
+                    result["schedule"][day].append(None)
         return result
 
 
@@ -55,7 +55,7 @@ class ScheduleParser:
 
     def get_schedules(self, folder_path: list) -> list:
         schedules = []
-        file_names = listdir(folder_path)
+        file_names = os.listdir(folder_path)
         for file_name in file_names:
             type_code = file_name[0]
             if type_code in ['t', 'c', 'r']:
@@ -189,14 +189,28 @@ class ScheduleParser:
 
     def save_json_single(self, schedule: Schedule, folder) -> None:
         schedule_json = schedule.get_as_json()
-        file_name = f"{folder}/{schedule.code}-{schedule.name}.json"
+        file_name = self.get_saving_file_name(schedule, folder)
         with open(file_name, "w", encoding="utf8") as fp:
             json.dump(schedule_json, fp, indent=4)
-    def save_json_all(self, folder = DEFAUT_SCHEDULE_FOLDER) -> None:
-        folder = folder + "/json"
-        for schedule in self.schedules:
-            self.save_json_single(schedule, folder)
 
+    def save_json_all(self, source_folder = DEFAUT_SCHEDULE_FOLDER) -> None:
+        target_folder = source_folder + "/json"
+        if not os.path.isdir(target_folder):
+            os.mkdir(target_folder)
+        for schedule in self.schedules:
+            self.save_json_single(schedule, target_folder)
+
+    def get_saving_file_name(self, schedule: Schedule, folder: str) -> str:
+        file_name = f"{schedule.code}-{schedule.name}.json"
+        if schedule.type == ScheduleType.Teacher:
+            file_name = 't' + file_name
+        elif schedule.type == ScheduleType.ClassUnit:
+            file_name = 'c' + file_name
+        elif schedule.type == ScheduleType.Classroom:
+            file_name = 'r' + file_name
+        else:
+            raise ValueError("未定義的 schedule type")
+        return f"{folder}/{file_name}"
 parser = ScheduleParser(DEFAUT_SCHEDULE_FOLDER)
 parser.parse()
 parser.save_json_all()
