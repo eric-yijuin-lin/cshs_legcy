@@ -15,14 +15,13 @@
 </head>
 
 <body>
-  <h1 class="test">112學年竹山高中暑期課表</h1>
+  <h1>112學年竹山高中暑期課表</h1>
   <div id="teacher-div">
     <input type="text" id="filterInput" placeholder="輸入代碼或名字搜尋">
     <select id="selectBox" size="5"></select>
     <!-- teacher table -->
-    <h5><center id="teacher-header">請選擇教師</center></h5>
-    <table border="2" align="center" cellspacing="1" cellpadding="1" id="class-table" class="schedule-container"
-      style="display: none;">
+    <h5><center id="teacher-title">請選擇教師</center></h5>
+    <table border="2" align="center" cellspacing="1" cellpadding="1" id="teacher-table" class="schedule-container">
       <tbody>
         <tr>
           <td colspan=2 align=center>&nbsp;</td>
@@ -188,13 +187,26 @@
   </table>
 
   <script>
-    const supportedPages = ["teacher", "classUnit", "classroom"];
-    let showingCode = "";
+    const supportedTypeKeys = ["teacher", "classUnit", "classroom"];
+    const dayMap = {
+      "一": 0,
+      "二": 1,
+      "三": 2,
+      "四": 3,
+      "五": 4,
+    }
+    let selectedCode = "";
     let teacherList = [];
-    let showingPage = supportedPages[0];
+    let teacherSchedules = [];
+    let classSchedules = [];
+    let roomSchedules = [];
+    let showingPage = supportedTypeKeys[0];
 
     const teacherSelectBox = document.getElementById("selectBox");
     const filterInput = document.getElementById("filterInput");
+    const teacherDiv = document.getElementById("teacher-div");
+    const classTable = document.getElementById("class-table");
+    const roomTabe = document.getElementById("room-table");
 
     document.addEventListener("DOMContentLoaded", function (event) {
       fetchAndShowData();
@@ -216,6 +228,18 @@
       changeShow("teacher", selectedValue);
     });
 
+    function isTeacherType(typeText) {
+      return typeText.toLowerCase() === 't' || typeText.toLowerCase() === 'teacher';
+    }
+
+    function isClassUnitType(typeText) {
+      return typeText.toLowerCase() === 'c' || typeText.toLowerCase() === 'classunit';
+    }
+
+    function isClassroomType(typeText) {
+      return typeText.toLowerCase() === 'r' || typeText.toLowerCase() === 'classroom';
+    }
+
     function populateSelectBox(options) {
       teacherSelectBox.innerHTML = "";
       options.forEach(option => {
@@ -227,8 +251,8 @@
     }
 
     function fetchAndShowData() {
-      const url = "https://www.cshs.ntct.edu.tw/ischool/public/resource_view/openfid.php?id=11903";
-
+      // const url = "https://www.cshs.ntct.edu.tw/ischool/public/resource_view/openfid.php?id=11903";
+      const url = "https://localhost:7141/";
       fetch(url)
         .then(response => {
           if (!response.ok) {
@@ -239,6 +263,8 @@
         .then(data => {
           console.log(data);
           teacherSchedules = data["teacher"];
+          classSchedules = data["class_unit"];
+          roomSchedules = data["class_room"];
           teacherList = getTeacherList(teacherSchedules);
           populateSelectBox(teacherList);
         })
@@ -273,20 +299,108 @@
     }
 
     function changeShow(pageType, scheduleCode) {
-      if (!supportedPages.includes(pageType)) {
+      if (!supportedTypeKeys.includes(pageType)) {
         console.log("unsupported type: ", pageType);
         return;
       }
 
       showingPage = pageType;
-      if (pageType === supportedPages[0]) {
-        showingCode = "t" + scheduleCode;
-      } else if (pageType === supportedPages[1]) {
-        showingCode = "c" + scheduleCode;
-      } else if (pageType === supportedPages[2]) {
-        showingCode = "r" + scheduleCode;
+      if (pageType === supportedTypeKeys[0]) {
+        selectedCode = "t" + scheduleCode;
+        toggleDsiplay('t');
+      } else if (pageType === supportedTypeKeys[1]) {
+        selectedCode = "c" + scheduleCode;
+        toggleDsiplay('t');
+      } else if (pageType === supportedTypeKeys[2]) {
+        selectedCode = "r" + scheduleCode;
+        toggleDsiplay('t');
       }
-      console.log("change show to", pageType, showingCode);
+      console.log("change show to", pageType, selectedCode);
+
+      const weekSchedule = getWeekSchedule(pageType, selectedCode);
+      const displayObject = getDisplayObject(weekSchedule);
+    }
+
+    function toggleDsiplay(scheduleType) {
+      if (scheduleType === 't' || scheduleType === 'teacher') {
+        teacherDiv.style.display = "block";
+        classTable.style.display = "none";
+        roomTabe.style.display = "none";
+      } else if (scheduleType === 'c' || scheduleType === 'classUnit') {
+        teacherDiv.style.display = "none";
+        classTable.style.display = "block";
+        roomTabe.style.display = "none";
+      } else if (scheduleType === 'r' || scheduleType === 'classroom') {
+        teacherDiv.style.display = "none";
+        classTable.style.display = "none";
+        roomTabe.style.display = "block";
+      }
+    }
+
+    function getWeekSchedule(typeKey, selectedCode) {
+      if (!supportedTypeKeys.includes(typeKey)) {
+        console.log("unsupported type key", typeKey);
+        return null;
+      }
+      console.log('debug', teacherSchedules);
+      console.log('debug', selectedCode);
+      let weekSchedule = [];
+      if (typeKey === "teacher") {
+        return teacherSchedules.find(x => "t" + x.code === selectedCode);
+      } else if (typeKey === "classUnit") {
+        return classSchedules.find(x => "c" + x.code === selectedCode);
+      } else if (typeKey === "classroom") {
+        return roomSchedules.find(x => "r" + x.code === selectedCode);
+      } else {
+        console.log("unsupported type key", typeKey);
+        return null;
+      }
+    }
+
+    function getDisplayObject(scheduleJson) {
+      console.log("debug: ", scheduleJson);
+      let displayObject = {
+        "name": scheduleJson.name,
+        "code": scheduleJson.code,
+        "timeTable": []
+      }
+      for (let i = 0; i < 8; i++) {
+        displayObject.timeTable.push(Array(5).fill(null));
+      }
+
+      for (const dayKey in scheduleJson.schedule) {
+        const dayIndex = dayMap[dayKey];
+        const daySchedule = scheduleJson.schedule[dayKey];
+        for (let i = 0; i < daySchedule.length; i++) {
+          displayObject.timeTable[i][dayIndex] = daySchedule[i];
+        }
+      }
+      console.log("displayObject: ", displayObject);
+      return;
+    }
+
+    function refreshTable(pageType, displayObject) {
+      if (isTeacherType(pageType)) {
+        refreshTeacherDiv(displayObject);
+      } else if (isClassUnitType(pageType)) {
+        refreshClassTable(displayObject);
+      } else if (isClassroomType(pageType)) {
+        refreshRoomTable(displayObject);
+      } else {
+        console.log("unsupported page type");
+      }
+    }
+
+    function refreshTeacherDiv(displayObject) {
+      document.getElementById("teacher-title").text = displayObject.name;
+    }
+
+    function refreshClassTable(displayObject) {
+
+    }
+
+    function refreshRoomTable(displayObject) {
+
     }
   </script>
 </body>
