@@ -205,8 +205,10 @@
     const teacherSelectBox = document.getElementById("selectBox");
     const filterInput = document.getElementById("filterInput");
     const teacherDiv = document.getElementById("teacher-div");
+    const teacherTable = document.getElementById("teacher-table");
     const classTable = document.getElementById("class-table");
     const roomTabe = document.getElementById("room-table");
+    const teacherTitle = document.getElementById("teacher-title");
 
     document.addEventListener("DOMContentLoaded", function (event) {
       fetchAndShowData();
@@ -229,15 +231,15 @@
     });
 
     function isTeacherType(typeText) {
-      return typeText.toLowerCase() === 't' || typeText.toLowerCase() === 'teacher';
+      return typeText.toLowerCase() === "t" || typeText.toLowerCase() === "teacher";
     }
 
     function isClassUnitType(typeText) {
-      return typeText.toLowerCase() === 'c' || typeText.toLowerCase() === 'classunit';
+      return typeText.toLowerCase() === "c" || typeText.toLowerCase() === "classunit";
     }
 
     function isClassroomType(typeText) {
-      return typeText.toLowerCase() === 'r' || typeText.toLowerCase() === 'classroom';
+      return typeText.toLowerCase() === "r" || typeText.toLowerCase() === "classroom";
     }
 
     function populateSelectBox(options) {
@@ -307,30 +309,31 @@
       showingPage = pageType;
       if (pageType === supportedTypeKeys[0]) {
         selectedCode = "t" + scheduleCode;
-        toggleDsiplay('t');
+        toggleDsiplay("t");
       } else if (pageType === supportedTypeKeys[1]) {
         selectedCode = "c" + scheduleCode;
-        toggleDsiplay('t');
+        toggleDsiplay("t");
       } else if (pageType === supportedTypeKeys[2]) {
         selectedCode = "r" + scheduleCode;
-        toggleDsiplay('t');
+        toggleDsiplay("t");
       }
       console.log("change show to", pageType, selectedCode);
 
       const weekSchedule = getWeekSchedule(pageType, selectedCode);
       const displayObject = getDisplayObject(weekSchedule);
+      refreshTable(pageType, displayObject);
     }
 
     function toggleDsiplay(scheduleType) {
-      if (scheduleType === 't' || scheduleType === 'teacher') {
+      if (scheduleType === "t" || scheduleType === "teacher") {
         teacherDiv.style.display = "block";
         classTable.style.display = "none";
         roomTabe.style.display = "none";
-      } else if (scheduleType === 'c' || scheduleType === 'classUnit') {
+      } else if (scheduleType === "c" || scheduleType === "classUnit") {
         teacherDiv.style.display = "none";
         classTable.style.display = "block";
         roomTabe.style.display = "none";
-      } else if (scheduleType === 'r' || scheduleType === 'classroom') {
+      } else if (scheduleType === "r" || scheduleType === "classroom") {
         teacherDiv.style.display = "none";
         classTable.style.display = "none";
         roomTabe.style.display = "block";
@@ -342,8 +345,8 @@
         console.log("unsupported type key", typeKey);
         return null;
       }
-      console.log('debug', teacherSchedules);
-      console.log('debug', selectedCode);
+      console.log("debug", teacherSchedules);
+      console.log("debug", selectedCode);
       let weekSchedule = [];
       if (typeKey === "teacher") {
         return teacherSchedules.find(x => "t" + x.code === selectedCode);
@@ -376,7 +379,7 @@
         }
       }
       console.log("displayObject: ", displayObject);
-      return;
+      return displayObject;
     }
 
     function refreshTable(pageType, displayObject) {
@@ -392,7 +395,13 @@
     }
 
     function refreshTeacherDiv(displayObject) {
-      document.getElementById("teacher-title").text = displayObject.name;
+      teacherTitle.text = displayObject.name;
+      clearTableRows(teacherTable);
+      for (let period = 0; period < 5; period++) {
+        const timeTableRow = getTimeTableRow(period, displayObject);
+        const trElement = createTimeTableTrElement(period, timeTableRow);
+        teacherTable.append(trElement);
+      }
     }
 
     function refreshClassTable(displayObject) {
@@ -400,7 +409,91 @@
     }
 
     function refreshRoomTable(displayObject) {
+    }
 
+    function clearTableRows(tableElement, includeHeader = false) {
+      let rowIndex = 1;
+      if (includeHeader) {
+        rowIndex = 0;
+      }
+      for (let i = rowIndex; i < tableElement.rows.length; i++) {
+        tableElement.deleteRow(i);
+      }
+    }
+
+    function getTimeTableRow(period, displayObject) {
+      const row = [];
+      for (let dayIndex = 0; dayIndex < 5; dayIndex++) {
+        row.push(displayObject.timeTable[dayIndex][period])
+      }
+      return row;
+    }
+
+    function createTimeTableTrElement(period, dataRow) {
+      const newRow = document.createElement("tr");
+      const periodTextTd = createChinesePeriodTdElement(period);
+      const periodTimeTd = createPeriodTimeTdElement(period);
+      newRow.appendChild(periodTextTd);
+      newRow.appendChild(periodTimeTd);
+      for (const cell of dataRow) {
+        const td = document.createElement("td");
+        let html = "";
+        if (cell) {
+          html = createTimeTableTdElement(cell);
+        }
+        console.log("debug-html: ", html);
+        td.innerHTML = html;
+        console.log("debug-td", td);
+        newRow.appendChild(td);
+      }
+      return newRow;
+    }
+
+    function createTimeTableTdElement(cell) {
+      let html = cell.subject;
+      if (cell.class_unit) {
+        html += `<br><a href="#">${cell.class_unit.text}</a>`;
+      }
+      if (cell.teacher) {
+        html += `<br><a href="#">${cell.teacher.text}</a>`;
+      }
+      if (cell.class_room && cell.class_room.text) {
+        html += `<br><a href="#">${cell.class_room.text}</a>`;
+      }
+      return html;
+    }
+
+    function createChinesePeriodTdElement(period) {
+      const td = document.createElement("td");
+      switch (period) {
+        case 0: td.textContent = "第一節"; break;
+        case 1: td.textContent = "第二節"; break;
+        case 2: td.textContent = "第三節"; break;
+        case 3: td.textContent = "第四節"; break;
+        case 4: td.textContent = "第五節"; break;
+        default:
+          console.log("undefied period");
+          break;
+      }
+      return td;
+    }
+
+    function createPeriodTimeTdElement(period) {
+      const td = document.createElement("td");
+      switch (period) {
+        case 0: td.innerHTML = `08:00<br>|<br>08:50`; break;
+        case 1: td.innerHTML = `09:10<br>|<br>10:00`; break;
+        case 2: td.innerHTML = `10:10<br>|<br>11:00`; break;
+        case 3: td.innerHTML = `11:10<br>|<br>12:00`; break;
+        case 4: td.innerHTML = `13:10<br>|<br>14:00`; break;
+        case 5: td.innerHTML = `14:10<br>|<br>15:00`; break;
+        case 6: td.innerHTML = `15:15<br>|<br>16:05`; break;
+        case 7: td.innerHTML = `16:10<br>|<br>17:00`; break;
+        default:
+          console.log("undefied period");
+          break;
+      }
+      return td;
     }
   </script>
 </body>
