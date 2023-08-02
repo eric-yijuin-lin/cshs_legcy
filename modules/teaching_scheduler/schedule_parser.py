@@ -41,6 +41,8 @@ class Schedule:
                 key = (day, period)
                 if key in self.schedule:
                     result["schedule"][day].append(self.schedule[key])
+                else:
+                    result["schedule"][day].append(None)
         return result
 
 
@@ -92,7 +94,9 @@ class ScheduleParser:
         if type_code == 't':
             schedule = self.get_teacher_schedule(soup)
         elif type_code == 'c':
-            schedule = self.get_classunit_schedule(soup)
+            schedule = self.get_classunit_schedule(soup)    
+        elif type_code == 'r':
+            schedule = self.get_classroom_schedule(soup)
         return schedule
 
     def get_teacher_schedule(self, bs4_obj: BeautifulSoup) -> dict:
@@ -183,6 +187,52 @@ class ScheduleParser:
                     }
         return schedule
 
+    def get_classroom_schedule(self, bs4_obj: BeautifulSoup) -> dict:
+        schedule = {}
+        columns = ['節次', '時間', '一', '二', '三', '四', '五']
+        table_rows = bs4_obj.find_all("tr")
+        for tr in table_rows:
+            if tr.text == "回班級課表索引頁" or tr.text == "午休" or tr.text == "\n\xa0\n一\n二\n三\n四\n五\n":
+                continue
+            row_data = tr.find_all("td")
+            if len(row_data) == 0:
+                continue
+            period = ''
+
+            lc = len(columns)
+            for i in range(lc):
+                day = ''
+                subject = ''
+                class_unit = {}
+                teacher = {}
+                td = row_data[i]
+                if len(td.contents) < 2:
+                    print("正在忽略 ", td.contents)
+                elif td.contents[0] == "第":
+                    period = self.get_period(td.contents)
+                    print(period)
+                elif td.contents[2] == "｜":
+                    print("正在忽略時間")
+                elif td.find("a"):
+                    subject = td.contents[0]
+                    a_tags = td.find_all("a")
+                    class_unit["text"] = a_tags[0].text
+                    class_unit["href"] = a_tags[0]["href"]
+                    if len(a_tags) == 2:
+                        teacher["text"] = a_tags[1].text
+                        teacher["href"] = a_tags[1]["href"]
+                else:
+                    print(td.contents)
+                    raise ValueError("undefined structure detected.")
+                if i >= 2 and subject:
+                    day = columns[i]
+                    schedule[(day, period)] = {
+                        "subject": subject,
+                        "class_unit": class_unit,
+                        "teacher": teacher
+                    }
+        return schedule
+
     def get_period(self, td_contents: list):
         return td_contents[0] + td_contents[2] + td_contents[4]
 
@@ -235,7 +285,7 @@ class ScheduleParser:
         with open(output_file, "w", encoding="utf8") as fp:
             json.dump(unified_json, fp, indent=4)
 
-parser = ScheduleParser(DEFAUT_SCHEDULE_FOLDER)
-parser.parse()
-parser.save_all_schedule_as_json()
-parser.unify_schedule_json()
+# parser = ScheduleParser(DEFAUT_SCHEDULE_FOLDER)
+# parser.parse()
+# parser.save_all_schedule_as_json()
+# parser.unify_schedule_json()
