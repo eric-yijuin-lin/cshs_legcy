@@ -90,13 +90,16 @@ class TimetableHtmlBuilder:
 
     def save_timetables_as_json(self, folder = DEFAUT_SCHEDULE_FOLDER + "/json"):
         file_name = folder + "/timetable_html.json"
-        unified_json = {
+        timetable_json = {}
+        timetable_json["timetables"] = {
             "teacher": self.get_timetable_json_array(self.teacher_timetables),
             "class_unit": self.get_timetable_json_array(self.class_timetables),
             "classroom": self.get_timetable_json_array(self.room_timetables),
         }
+        teacher_options = self.get_teacher_select_options(timetable_json["timetables"]["teacher"])
+        timetable_json["teacher_options"] = teacher_options
         with open(file_name, "w", encoding="utf8") as fp:
-            json.dump(unified_json, fp, indent=4)
+            json.dump(timetable_json, fp, indent=4)
 
     def get_timetable_json_array(self, timetables: list) -> list:
         result = []
@@ -151,6 +154,14 @@ class TimetableHtmlBuilder:
         td_html += "</td>"
         return td_html
 
+    def get_teacher_select_options(self, teacher_timetables: list):
+        return [
+            {
+                "name": timetable["name"],
+                "code": timetable["code"]
+            }
+            for timetable in teacher_timetables
+        ]
 builder = TimetableHtmlBuilder()
 builder.load_schedule()
 builder.save_timetables_as_json()
