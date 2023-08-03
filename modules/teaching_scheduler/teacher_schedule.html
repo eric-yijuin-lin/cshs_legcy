@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>暑期課表</title>
+    <style>
+        .test {
+            color: red;
+        }
+
+        .schedule-container {
+            width: 90vw;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>112學年竹山高中暑期課表</h1>
+    <input type="text" id="filterInput" placeholder="輸入代碼或名字搜尋">
+    <select id="teacherSelectBox" size="5"></select>
+    <h3>
+        <center id="teacher-title">請選擇教師</center>
+    </h3>
+    <div id="timetable-div">
+        <table border="2" align="center" cellspacing="1" cellpadding="1" id="teacher-table" class="schedule-container">
+        </table>
+    </div>
+
+    <script>
+        const teacherSelectBox = document.getElementById("teacherSelectBox");
+        const teacherTable = document.getElementById("teacher-table");
+        const teacherTitle = document.getElementById("teacher-title");
+        const filterInput = document.getElementById("filterInput");
+
+        let timetableObj = null;
+
+        document.addEventListener("DOMContentLoaded", function (event) {
+            fetchAndShowData();
+        });
+        teacherSelectBox.addEventListener("change", function () {
+            const selectedOption = teacherSelectBox.options[teacherSelectBox.selectedIndex];
+            refreshTimetable(selectedOption);
+        });
+
+        function fetchAndShowData() {
+            // const url = "https://www.cshs.ntct.edu.tw/ischool/public/resource_view/openfid.php?id=12020";
+            const url = "https://localhost:7141/";
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("讀取課表失敗");
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    timetableObj = data;
+                    populateSelectBox(timetableObj.teacher_options);
+                })
+                .catch(error => {
+                    console.error("Error fetching data:", error);
+                    alert("Error fetching data. Please check the console for more information.");
+                });
+        }
+
+        function populateSelectBox(options) {
+            teacherSelectBox.innerHTML = "";
+            options.forEach(option => {
+                const optionElement = document.createElement("option");
+                optionElement.textContent = `${option.code}-${option.name}`;
+                optionElement.value = option.code;
+                teacherSelectBox.appendChild(optionElement);
+            });
+        }
+
+        function refreshTimetable(selectedOption) {
+            const techerCode = selectedOption.value;
+            const teacherName = selectedOption.textContent;
+            const timetable = timetableObj.timetables.teacher.find(x => x.code === techerCode);
+            teacherTitle.textContent = selectedOption.textContent;
+            teacherTable.innerHTML = timetable.table_html;
+        }
+
+        filterInput.addEventListener("input", function () {
+            const filterValue = filterInput.value.toLowerCase();
+            const filteredData = timetableObj.teacher_options.filter(option => 
+                option.name.toLowerCase().includes(filterValue) || option.code.toLowerCase().includes(filterValue));
+            populateSelectBox(filteredData);
+        });
+    </script>
+</body>
+
+</html>
