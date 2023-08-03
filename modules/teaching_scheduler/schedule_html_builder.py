@@ -104,7 +104,7 @@ class TimetableHtmlBuilder:
     def get_timetable_json_array(self, timetables: list) -> list:
         result = []
         for table_obj in timetables:
-            table_html = self.timetable_to_html_table(table_obj["timetable"])
+            table_html = self.timetable_to_html_table(False, table_obj["timetable"])
             timetable_json = {
                 "name": table_obj["name"],
                 "code": table_obj["code"],
@@ -113,12 +113,16 @@ class TimetableHtmlBuilder:
             result.append(timetable_json)
         return result
 
-    def timetable_to_html_table(self, timetable: list) -> str:
-        html = "<table border=\"2\" width=\"90%\" align=\"center\" cellpadding=\"1\" cellspacing=\"1\">"
+    def timetable_to_html_table(self, with_table_root: bool, timetable: list) -> str:
+        tr_list_html = ""
         for period in range(8):
-            html += self.timetable_row_to_html_tr(period, timetable[period])
-        html += "</table>"
-        return html
+            tr_list_html += self.timetable_row_to_html_tr(period, timetable[period])
+
+        if with_table_root:
+            table_start = "<table border=\"2\" width=\"90%\" align=\"center\" cellpadding=\"1\" cellspacing=\"1\">"
+            table_end = "</table>"
+            return table_start + tr_list_html + table_end
+        return tr_list_html
 
     def timetable_row_to_html_tr(self, period, timetale_row):
         tr_html = "<tr>"
