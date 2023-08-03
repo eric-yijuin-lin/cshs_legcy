@@ -114,7 +114,7 @@ class TimetableHtmlBuilder:
         return result
 
     def timetable_to_html_table(self, with_table_root: bool, timetable: list) -> str:
-        tr_list_html = ""
+        tr_list_html = "<tr><td colspan=\"2\" align=\"center\">&nbsp;</td><td align=\"center\" width=\"15%\"><b>一</b></td><td align=\"center\" width=\"15%\"><b>二</b></td><td align=\"center\" width=\"15%\"><b>三</b></td><td align=\"center\" width=\"15%\"><b>四</b></td><td align=\"center\" width=\"15%\"><b>五</b></td></tr>"
         for period in range(8):
             tr_list_html += self.timetable_row_to_html_tr(period, timetable[period])
 
