@@ -119,23 +119,23 @@ class TimetableHtmlBuilder:
 
     def timetable_row_to_html_tr(self, period, timetale_row):
         tr_html = "<tr>"
-        tr_html += self.createChinesePeriodTextTd(period)
-        tr_html += self.createPeriodTimeTextTd(period)
+        tr_html += self.create_chinese_period_td(period)
+        tr_html += self.create_period_time_td(period)
         for i in range(5):
-            tr_html += self.createTimetableCellTd(timetale_row[i])
+            tr_html += self.create_timetable_cell_td(timetale_row[i])
         tr_html += "</tr>"
         return tr_html
 
-    def createChinesePeriodTextTd(self, period_index) -> str:
+    def create_chinese_period_td(self, period_index) -> str:
         period_text = period_texts[period_index]
         return f"<td align=\"center\">{period_text}</td>"
 
-    def createPeriodTimeTextTd(self, period_index) -> str:
+    def create_period_time_td(self, period_index) -> str:
         time_start = period_times[period_index][0]
         time_end = period_times[period_index][1]
         return f"<td align=\"center\">{time_start}<br> | <br>{time_end}</td>"
 
-    def createTimetableCellTd(self, cell_dict) -> str:
+    def create_timetable_cell_td(self, cell_dict) -> str:
         if cell_dict is None:
             return "<td align=\"center\">&nbsp;</td>"
         td_html = "<td align=\"center\">" + cell_dict["subject"]
