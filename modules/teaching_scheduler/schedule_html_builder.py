@@ -146,15 +146,12 @@ class TimetableHtmlBuilder:
         if cell_dict is None:
             return "<td align=\"center\">&nbsp;</td>"
         td_html = "<td align=\"center\">" + cell_dict["subject"]
-        if "class_unit" in cell_dict and cell_dict["class_unit"]:
-            class_unit = cell_dict["class_unit"]["text"]
-            td_html += f"<br><a href=\"#\">{class_unit}</a>"
-        if "teacher" in cell_dict and cell_dict["teacher"]:
-            teacher = cell_dict["teacher"]["text"]
-            td_html += f"<br><a href=\"#\">{teacher}</a>"
-        if "class_room" in cell_dict and cell_dict["class_room"]:
-            class_room = cell_dict["class_room"]["text"]
-            td_html += f"<br><a href=\"#\">{class_room}</a>"
+        table_types = ["class_unit", "teacher", "class_room"]
+        for type_key in table_types:
+            if type_key in cell_dict and cell_dict[type_key]: 
+                link_text = cell_dict[type_key]["text"]
+                link_href =  cell_dict[type_key]["href"]
+                td_html += f"<br><a href=\"{link_href}\">{link_text}</a>"
         td_html += "</td>"
         return td_html
 

@@ -5,6 +5,9 @@ from bs4 import BeautifulSoup
 
 DEFAUT_SCHEDULE_FOLDER = "C:/Users/funny/Desktop/112暑輔網頁"
 SUPPORTED_PREFIX = ['t', 'c', 'r']
+TEACHER_PAGE_URL = "https://www.cshs.ntct.edu.tw/ischool/widget/main_menu/show.php?id=2619&map=0"
+CLASS_PAGE_URL = "https://www.cshs.ntct.edu.tw/ischool/widget/main_menu/show.php?id=2619&map=0"
+ROOM_PAGE_URL = "https://www.cshs.ntct.edu.tw/ischool/widget/main_menu/show.php?id=2619&map=0"
 
 class ScheduleType(Enum):
     Undefineded = 0
@@ -94,7 +97,7 @@ class ScheduleParser:
         if type_code == 't':
             schedule = self.get_teacher_schedule(soup)
         elif type_code == 'c':
-            schedule = self.get_classunit_schedule(soup)    
+            schedule = self.get_classunit_schedule(soup)
         elif type_code == 'r':
             schedule = self.get_classroom_schedule(soup)
         return schedule
@@ -127,10 +130,10 @@ class ScheduleParser:
                     subject = td.contents[0]
                     a_tags = td.find_all("a")
                     class_unit["text"] = a_tags[0].text
-                    class_unit["href"] = a_tags[0]["href"]
+                    class_unit["href"] = self.get_hyper_link(a_tags[0]["href"])
                     if len(a_tags) == 2:
                         class_room["text"] = a_tags[1].text
-                        class_room["href"] = a_tags[1]["href"]
+                        class_room["href"] = self.get_hyper_link(a_tags[1]["href"])
                 else:
                     print(td.contents)
                     raise ValueError("undefined structure detected.")
@@ -142,6 +145,17 @@ class ScheduleParser:
                         "class_room": class_room
                     }
         return schedule
+
+    def get_hyper_link(self, href: str) -> str:
+        page = href.replace(".\\", "").replace(".html", "")
+        page_type = page[0]
+        code = page[1:]
+        if page_type == 't':
+            return f"{TEACHER_PAGE_URL}&code={code}"
+        if page_type == 'c':
+            return f"{CLASS_PAGE_URL}&code={code}"
+        if page_type == 'r':
+            return f"{ROOM_PAGE_URL}&code={code}"
 
     def get_classunit_schedule(self, bs4_obj: BeautifulSoup) -> dict:
         schedule = {}
@@ -171,10 +185,10 @@ class ScheduleParser:
                     subject = td.contents[0]
                     a_tags = td.find_all("a")
                     teacher["text"] = a_tags[0].text
-                    teacher["href"] = a_tags[0]["href"]
+                    teacher["href"] = self.get_hyper_link(a_tags[0]["href"])
                     if len(a_tags) == 2:
                         class_room["text"] = a_tags[1].text
-                        class_room["href"] = a_tags[1]["href"]
+                        class_room["href"] = self.get_hyper_link(a_tags[1]["href"])
                 else:
                     print(td.contents)
                     raise ValueError("undefined structure detected.")
@@ -217,10 +231,10 @@ class ScheduleParser:
                     subject = td.contents[0]
                     a_tags = td.find_all("a")
                     class_unit["text"] = a_tags[0].text
-                    class_unit["href"] = a_tags[0]["href"]
+                    class_unit["href"] = self.get_hyper_link(a_tags[0]["href"])
                     if len(a_tags) == 2:
                         teacher["text"] = a_tags[1].text
-                        teacher["href"] = a_tags[1]["href"]
+                        teacher["href"] = self.get_hyper_link(a_tags[1]["href"])
                 else:
                     print(td.contents)
                     raise ValueError("undefined structure detected.")
