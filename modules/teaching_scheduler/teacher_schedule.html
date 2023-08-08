@@ -4,10 +4,6 @@
 <head>
     <title>暑期課表</title>
     <style>
-        .test {
-            color: red;
-        }
-
         .schedule-container {
             width: 90vw;
         }
@@ -41,6 +37,12 @@
             const selectedOption = teacherSelectBox.options[teacherSelectBox.selectedIndex];
             refreshTimetable(selectedOption);
         });
+        filterInput.addEventListener("input", function () {
+            const filterValue = filterInput.value.toLowerCase();
+            const filteredData = timetableObj.teacher_options.filter(option =>
+                option.name.toLowerCase().includes(filterValue) || option.code.toLowerCase().includes(filterValue));
+            populateSelectBox(filteredData);
+        });
 
         function fetchAndShowData() {
             // const url = "https://www.cshs.ntct.edu.tw/ischool/public/resource_view/openfid.php?id=12020";
@@ -55,6 +57,7 @@
                 .then(data => {
                     timetableObj = data;
                     populateSelectBox(timetableObj.teacher_options);
+                    refreshTableByQeuryString();
                 })
                 .catch(error => {
                     console.error("Error fetching data:", error);
@@ -72,20 +75,32 @@
             });
         }
 
+        function refreshTableByQeuryString() {
+            const queryString = window.location.search;
+            const params = new URLSearchParams(queryString);
+            const code = params.get("code");
+            if (code) {
+                for (const option of teacherSelectBox.options) {
+                    if (option.value === code){
+                        refreshTimetable(option);
+                        break;
+                    }
+                }
+            }
+        }
+
         function refreshTimetable(selectedOption) {
             const techerCode = selectedOption.value;
             const teacherName = selectedOption.textContent;
             const timetable = timetableObj.timetables.teacher.find(x => x.code === techerCode);
+            if (!timetable) {
+                alert(`找不到教師代碼 ${techerCode} 的課表`);
+                return;
+            }
             teacherTitle.textContent = selectedOption.textContent;
             teacherTable.innerHTML = timetable.table_html;
         }
 
-        filterInput.addEventListener("input", function () {
-            const filterValue = filterInput.value.toLowerCase();
-            const filteredData = timetableObj.teacher_options.filter(option => 
-                option.name.toLowerCase().includes(filterValue) || option.code.toLowerCase().includes(filterValue));
-            populateSelectBox(filteredData);
-        });
     </script>
 </body>
 
