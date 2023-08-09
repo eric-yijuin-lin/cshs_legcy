@@ -96,8 +96,9 @@ class TimetableHtmlBuilder:
             "class_unit": self.get_timetable_json_array(self.class_timetables),
             "classroom": self.get_timetable_json_array(self.room_timetables),
         }
-        teacher_options = self.get_teacher_select_options(timetable_json["timetables"]["teacher"])
-        timetable_json["teacher_options"] = teacher_options
+        timetable_json["teacher_options"] = self.get_select_options(timetable_json, ScheduleType.Teacher)
+        timetable_json["class_options"] = self.get_select_options(timetable_json, ScheduleType.ClassUnit)
+        timetable_json["room_options"] = self.get_select_options(timetable_json, ScheduleType.Classroom)
         with open(file_name, "w", encoding="utf8") as fp:
             json.dump(timetable_json, fp, indent=4)
 
@@ -155,13 +156,20 @@ class TimetableHtmlBuilder:
         td_html += "</td>"
         return td_html
 
-    def get_teacher_select_options(self, teacher_timetables: list):
+    def get_select_options(self, timetable_json: dict, schedule_type: ScheduleType):
+        key_dict = {
+            ScheduleType.Teacher: "teacher",
+            ScheduleType.ClassUnit: "class_unit",
+            ScheduleType.Classroom: "classroom",
+        }
+        key = key_dict[schedule_type]
+        timetables: list = timetable_json["timetables"][key]
         return [
             {
                 "name": timetable["name"],
                 "code": timetable["code"]
             }
-            for timetable in teacher_timetables
+            for timetable in timetables
         ]
 builder = TimetableHtmlBuilder()
 builder.load_schedule()

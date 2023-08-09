@@ -5,9 +5,14 @@ from bs4 import BeautifulSoup
 
 DEFAUT_SCHEDULE_FOLDER = "C:/Users/funny/Desktop/112暑輔網頁"
 SUPPORTED_PREFIX = ['t', 'c', 'r']
-TEACHER_PAGE_URL = "https://www.cshs.ntct.edu.tw/ischool/widget/main_menu/show.php?id=2619&map=0"
-CLASS_PAGE_URL = "https://www.cshs.ntct.edu.tw/ischool/widget/main_menu/show.php?id=2619&map=0"
-ROOM_PAGE_URL = "https://www.cshs.ntct.edu.tw/ischool/widget/main_menu/show.php?id=2619&map=0"
+# TEACHER_PAGE_URL = "https://www.cshs.ntct.edu.tw/ischool/widget/main_menu/show.php?id=2619&map=0"
+# CLASS_PAGE_URL = "https://www.cshs.ntct.edu.tw/ischool/widget/main_menu/show.php?id=2619&map=0"
+# ROOM_PAGE_URL = "https://www.cshs.ntct.edu.tw/ischool/widget/main_menu/show.php?id=2619&map=0"
+
+TEACHER_PAGE_URL = "./teacher_schedule.html?debug=1"
+CLASS_PAGE_URL = "./class_schedule.html?debug=1"
+ROOM_PAGE_URL = "./room_schedule.html?debug=1"
+
 
 class ScheduleType(Enum):
     Undefineded = 0
