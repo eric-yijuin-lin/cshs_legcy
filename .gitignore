@@ -1,3 +1,4 @@
 /appConfig.json
 *.pyc
 sheet-api-credential.json
+modules/club/chat_bot/api_credential.json
