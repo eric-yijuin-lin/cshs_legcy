@@ -55,12 +55,23 @@ def callback():
 def handle_text_message(event):
     with ApiClient(configuration) as api_client:
         line_bot_api = MessagingApi(api_client)
-        line_bot_api.reply_message_with_http_info(
-            ReplyMessageRequest(
-                reply_token=event.reply_token,
-                messages=[TextMessage(text=event.message.text)]
+        if event.message.text == "debug":
+            profile = line_bot_api.get_profile(event.source.user_id)
+            name = profile.display_name
+            reply_msg = f"display_name: {name}, \nevent: {event}"
+            line_bot_api.reply_message_with_http_info(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=[TextMessage(text=reply_msg)]
+                )
             )
-        )
+        else:
+            line_bot_api.reply_message_with_http_info(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=[TextMessage(text=event.message.text)]
+                )
+            )
 
 @handler.add(MessageEvent, message=StickerMessageContent)
 def handle_sticker_message(event):
