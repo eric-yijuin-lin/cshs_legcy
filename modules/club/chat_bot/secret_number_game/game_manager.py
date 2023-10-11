@@ -73,18 +73,18 @@ class SecretNumberGameManager:
         self.is_room_open = False
         self.init_turn_list()
         return ProcessGameResult(GameStatusEnum.Ok, f"房間已關閉，不再開放加入。本次猜數字順序為：{self.turn_list}")
-    
+
     def init_turn_list(self) -> None:
         self.turn_list = list(self.players.values())
         random.shuffle(self.turn_list)
+        self.turn_index = 0
 
     def join_room(self, command_obj: dict) -> ProcessGameResult:
         player_id = command_obj["player_id"]
         name = command_obj["name"]
-        if self.is_debugging:
-            rand_num = "debug-" + str(random.randint(1, 100)).rjust(3, '0')
-            player_id += rand_num
-            name += rand_num
+        if self.is_debugging and len(command_obj["arguments"]) > 0:
+            player_id = command_obj["arguments"][0]
+            name = player_id
         if not self.is_room_open:
             return ProcessGameResult(GameStatusEnum.Error, f"{name} 你好，房間已關閉，下次請早喔~")
         if player_id in self.players:
@@ -95,13 +95,21 @@ class SecretNumberGameManager:
     def guess(self, command_obj: dict) -> ProcessGameResult:
         player_id = command_obj["player_id"]
         name = command_obj["name"]
+        if self.is_debugging and len(command_obj["arguments"]) > 1:
+            player_id = command_obj["arguments"][1]
+            name = player_id
+        turn_player_id = self.turn_list[self.turn_index]
+
         if self.is_room_open:
             return ProcessGameResult(GameStatusEnum.Error, "房間尚未關閉，必須先關閉才能開始猜")
         if not player_id in self.players and not self.is_debugging:
             return ProcessGameResult(GameStatusEnum.Error, f"{name} 你好，想要加入我們嗎？請先加入房間喔")
+        if player_id != turn_player_id:
+            turn_player_name = self.players[turn_player_id]
+            return ProcessGameResult(GameStatusEnum.Error, f"{name} 你好，現在輪到 {turn_player_name} 猜喔，請稍候")
         if command_obj["arguments"] is None or len(command_obj["arguments"]) == 0:
             return ProcessGameResult(GameStatusEnum.Error, f"{name} 你好，必須猜一個整數")
-        
+
         num_text: str = command_obj["arguments"][0]
         if not num_text or not num_text.isdigit():
             return ProcessGameResult(GameStatusEnum.Error, f"{name} 你好，必須猜一個整數")
@@ -114,9 +122,10 @@ class SecretNumberGameManager:
             self.max_number = guess_number
         else:
             self.min_number = guess_number
+        self.turn_index += 1
         return ProcessGameResult(GameStatusEnum.Missed, f"沒中!! 數字的範圍是 {self.min_number} 至 {self.max_number}")
 
     def set_debug_mode(self, arguments: dict) -> None:
         self.is_debugging = True
         return ProcessGameResult(GameStatusEnum.Ok, "啟動 debug 模式")
-        
+  
